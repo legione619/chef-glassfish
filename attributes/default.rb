@@ -36,7 +36,7 @@ default['glassfish']['domains_dir'] = '/srv/glassfish'
 #<> GlassFish Domain Definitions: A map of domain definitions that drive the instantiation of a domain.
 default['glassfish']['domains'] = Mash.new
 #<> Asadmin Timeout: The timeout in seconds set for asadmin calls. Usually the timeout for the wrapper chef resource adds 5 seconds to this.
-default['glassfish']['asadmin']['timeout'] = 150
+default['glassfish']['asadmin']['timeout'] = 900
 
 #<> Extract libraries for the OpenMQ Broker: A list of URLs to jars that are added to brokers classpath.
 default['openmq']['extra_libraries'] = Mash.new
