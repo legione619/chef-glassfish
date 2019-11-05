@@ -67,9 +67,14 @@ action :deploy do
 
     Chef::Log.info "Deploying #{new_resource.component_name} from #{new_resource.url}"
 
+    headers = {}
+    if new_resource.auth_username and new_resource.auth_password
+      headers['Authorization'] = "Basic #{ Base64.encode64("#{new_resource.auth_username}:#{new_resource.auth_password}").gsub("\n", "") }"
+    end
     a = glassfish_archive new_resource.component_name do
       prefix archives_dir
       url new_resource.url
+      headers headers
       version new_resource.version_value
       owner node['glassfish']['user']
       group node['glassfish']['group']
@@ -106,7 +111,7 @@ action :deploy do
         test -f #{deployment_plan}
         CMD
 
-        timeout node['glassfish']['asadmin']['timeout'] + 300
+        timeout node['glassfish']['asadmin']['timeout'] + 5
         command cmd
         not_if { ::File.exists?(deployment_plan) }
       end
@@ -136,7 +141,7 @@ action :deploy do
       args << a.target_artifact
 
       # execute should wait for asadmin to time out first, if it doesn't because of some problem, execute should time out eventually
-      timeout node['glassfish']['asadmin']['timeout'] + 300 + 300
+      timeout node['glassfish']['asadmin']['timeout'] + 5 + 5
       user new_resource.system_user unless node['os'] == 'windows'
       group new_resource.system_group unless node['os'] == 'windows'
       command asadmin_command(args.join(' '))
@@ -167,10 +172,10 @@ action :undeploy do
 
     execute "asadmin_undeploy #{new_resource.component_name}" do
       unless cache_present
-        only_if "#{asadmin_command('list-applications')} #{new_resource.target}| grep -- '#{new_resource.component_name} '", :timeout => node['glassfish']['asadmin']['timeout'] + 300
+        only_if "#{asadmin_command('list-applications')} #{new_resource.target}| grep -- '#{new_resource.component_name} '", :timeout => node['glassfish']['asadmin']['timeout'] + 5
       end
       # execute should wait for asadmin to time out first, if it doesn't because of some problem, execute should time out eventually
-      timeout node['glassfish']['asadmin']['timeout'] + 300 + 300
+      timeout node['glassfish']['asadmin']['timeout'] + 5 + 5
       user new_resource.system_user unless node['os'] == 'windows'
       group new_resource.system_group unless node['os'] == 'windows'
       command asadmin_command(args.join(' '))
@@ -199,9 +204,9 @@ action :disable do
   args << new_resource.component_name
 
   execute "asadmin_disable #{new_resource.component_name}" do
-    only_if "#{asadmin_command('list-applications --long')} #{new_resource.target} | grep '#{new_resource.component_name} ' | grep enabled", :timeout => node['glassfish']['asadmin']['timeout'] + 300
+    only_if "#{asadmin_command('list-applications --long')} #{new_resource.target} | grep '#{new_resource.component_name} ' | grep enabled", :timeout => node['glassfish']['asadmin']['timeout'] + 5
     # execute should wait for asadmin to time out first, if it doesn't because of some problem, execute should time out eventually
-    timeout node['glassfish']['asadmin']['timeout'] + 300 + 300
+    timeout node['glassfish']['asadmin']['timeout'] + 5 + 5
     user new_resource.system_user unless node['os'] == 'windows'
     group new_resource.system_group unless node['os'] == 'windows'
     command asadmin_command(args.join(' '))
